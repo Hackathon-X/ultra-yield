@@ -1,11 +1,9 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount};
+use anchor_spl::token::{self, Burn, Mint, MintTo, Token, TokenAccount, Transfer};
 
 declare_id!("BVVPPEpsDpo2jjWmb73LZ9knYQgsVCAjGdYswpGi6sjx");
 #[program]
 pub mod ultra_yield {
-    use anchor_spl::token::{Burn, MintTo};
-
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
@@ -42,6 +40,32 @@ pub mod ultra_yield {
         // 与 Kamino 交互并处理提取逻辑（示例略）
         Ok(())
     }
+
+    // 函数用于铸造 ultrasol
+    pub fn mint_ultrasol(ctx: Context<MintUltrasol>, amount: u64) -> Result<()> {
+        let cpi_accounts = MintTo {
+            mint: ctx.accounts.ultrasol_mint.to_account_info(),
+            to: ctx.accounts.recipient.to_account_info(),
+            authority: ctx.accounts.mint_authority.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        token::mint_to(cpi_ctx, amount)?;
+        Ok(())
+    }
+
+    // 函数用于转移 ultrasol
+    pub fn transfer_ultrasol(ctx: Context<TransferUltrasol>, amount: u64) -> Result<()> {
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.from.to_account_info(),
+            to: ctx.accounts.to.to_account_info(),
+            authority: ctx.accounts.authority.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        token::transfer(cpi_ctx, amount)?;
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -74,8 +98,34 @@ pub struct WithdrawSol<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+#[derive(Accounts)]
+pub struct MintUltrasol<'info> {
+    #[account(mut)]
+    pub mint_authority: Signer<'info>,
+    pub ultrasol_mint: Account<'info, Mint>,
+    #[account(mut)]
+    pub recipient: Account<'info, TokenAccount>,
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct TransferUltrasol<'info> {
+    #[account(mut)]
+    pub from: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub to: Account<'info, TokenAccount>,
+    pub authority: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+}
+
 #[account]
 pub struct PoolAccount {
-    pub owner: Pubkey,
-    // 其他可能需要的字段
+    pub owner: Pubkey, // 池子的所有者或管理员
+    pub ultrasol_mint: Pubkey, // ultrasol 代币的 mint 地址
+    pub total_sol_deposited: u64, // 池中总共存储的 SOL 数量
+    pub total_ultrasol_minted: u64, // 总共铸造的 ultrasol 数量
+    pub kamino_pool_id: u64, // 与此池子相关联的 Kamino 池子的标识符（或地址）
+    pub last_update_timestamp: i64, // 最后一次更新池子状态的时间戳
+    pub total_lptokens_received: u64, // 从 Kamino 池子接收的 LP 代币总量
+    // 根据需要添加的其他字段
 }
