@@ -4,6 +4,7 @@ use anchor_spl::token::{self, Burn, Mint, MintTo, Token, TokenAccount, Transfer}
 declare_id!("BVVPPEpsDpo2jjWmb73LZ9knYQgsVCAjGdYswpGi6sjx");
 #[program]
 pub mod ultra_yield {
+
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
@@ -23,7 +24,12 @@ pub mod ultra_yield {
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         token::mint_to(cpi_ctx, amount)?;
-        // TODO 记录与 Kamino 交互的逻辑
+        // TODO: 记录与 Kamino 交互的逻辑
+        Ok(())
+    }
+
+    // TODO: 与 Kamino 交互并处理提取逻辑
+    pub fn interact_with_kamino(ctx: Context<WithdrawSol>) -> Result<()> {
         Ok(())
     }
 
@@ -37,7 +43,7 @@ pub mod ultra_yield {
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         token::burn(cpi_ctx, amount)?;
-        // 与 Kamino 交互并处理提取逻辑（示例略）
+        // TODO: 与 Kamino 交互并处理提取逻辑
         Ok(())
     }
 
