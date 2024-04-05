@@ -1,7 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Burn, Mint, MintTo, Token, TokenAccount, Transfer};
 
-declare_id!("BVVPPEpsDpo2jjWmb73LZ9knYQgsVCAjGdYswpGi6sjx");
+declare_id!("9z6dyhJqX5KdRzQUNatm4ZAH9FGwb2Ziddpxgv7brwr9");
+
 #[program]
 pub mod ultra_yield {
 
